@@ -1,8 +1,8 @@
 %{
 Comp Club: Generalized Linear Models
 
-This code goes along with the Comp Club sessions held on 1/23/17 by
-Selmaan, Laura and Matthias.
+This code goes along with the Comp Club sessions held on 1/23/17 and 2/6/17
+by Selmaan, Laura and Matthias.
 
 ---------------------------------------------------------------------------
 
@@ -153,8 +153,10 @@ X = reshape(s, [], nFrames)';
 lambda = 0.01; % Regularization strength. 0.01 is a good start here.
 alpha = 0.01; % Trades off between L2 and L1 regularization (alpha of 0 is pure L2).
 
+tic
 [rfRegularized, fitInfo] = lassoglm(X(isTrain, :), rNoisy(isTrain), ...
     'poisson', 'Lambda', lambda, 'Alpha', alpha);
+timeToFitOneLambda = toc;
 bias = fitInfo.Intercept;
 
 % Predict response and calculate explained deviance:
@@ -170,3 +172,57 @@ axis equal
 title({sprintf('GLM with regularization (l=%1.2f, a=%1.2f)', lambda, alpha), ...
     sprintf('Dev train=%1.1f%% test=%1.1f%%', ...
     100*devianceExplainedRegTrain, 100*devianceExplainedRegTest)})
+
+%% But how do we find the best lambda value to use?
+% We simply try a range of different values and see where the error is
+% lowest. We use cross-validation to get the error estimate, so that we are
+% not fooled by over-fitting.
+[rfCvAll, fitInfo] = lassoglm(X(isTrain, :), rNoisy(isTrain), ...
+    'poisson', 'CV', 10, 'Alpha', alpha);
+
+figure(9)
+lassoPlot(rfCvAll, fitInfo, 'plottype', 'CV', 'parent', gca);
+rfCv = rfCvAll(:, fitInfo.Index1SE);
+rHatCvTest = exp(X(isTest, :) * rfCv + fitInfo.Intercept(fitInfo.Index1SE));
+devianceExplainedCvTest = getDeviance(rNoisy(isTest), rHatCvTest);
+
+figure(10)
+imagesc(reshape(rfCv, size(rfTrue)))
+axis off
+axis equal
+title({sprintf('GLM with optimal regularization (l=%1.3f)', fitInfo.Lambda(fitInfo.Index1SE)), ...
+    sprintf('Dev test=%1.1f%%', 100*devianceExplainedCvTest)})
+
+%% Show regularization path and compare with Lasso (pure L1)
+figure(11)
+plot(log(fitInfo.Lambda), rfCvAll', 'linewidth', 3)
+title( 'L2 (ridge) regularization path')
+xlabel('Regulatization strength (log(lambda))')
+ylabel('Coefficient values')
+
+% Compare with pure lasso (L1) regularization:
+[rfCvAllLasso, fitInfoLasso] = lassoglm(X(isTrain, :), rNoisy(isTrain), ...
+    'poisson', 'CV', 10, 'Alpha', 1);
+
+figure(12)
+rfCvLasso = rfCvAllLasso(:, fitInfoLasso.Index1SE);
+im = imagesc(reshape(rfCvLasso, size(rfTrue)));
+im.AlphaData = reshape(rfCvLasso, size(rfTrue))~=0;
+axis off
+axis equal
+title('GLM with pure L1 (lasso) regularization')
+
+figure(13)
+plot(log(fitInfoLasso.Lambda), rfCvAllLasso', 'linewidth', 3)
+title( 'L1 (lasso) regularization path')
+xlabel('Regulatization strength (log(lambda))')
+ylabel('Coefficient values')
+
+
+
+
+
+
+
+
+
