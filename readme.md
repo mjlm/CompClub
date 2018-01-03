@@ -1,3 +1,3 @@
-This repository contains code for demonstrations at the Harvard CompClub.
+This repository contains notes and code for my presentations at the Harvard CompClub.
 
-Please let Matthias know if you find any errors in the code!
+Please let me know if you find any errors!
