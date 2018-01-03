@@ -44,3 +44,7 @@ x_ = xGrid .* cos(theta) + yGrid .* sin(theta);
 y_ = -xGrid .* sin(theta) + yGrid .* cos(theta);
 img = exp(-(x_.^2 + gamma.^2 .* y_.^2)./(2.*sigma.^2)) .* ...
     sin(2.*pi.*x_/lambda + phase);
+
+figure(5)
+imagesc(exp(-(x_.^2 + gamma.^2 .* y_.^2)./(2.*sigma.^2)) .* ...
+    cos(2.*pi.*x_/lambda + phase))

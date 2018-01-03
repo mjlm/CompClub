@@ -88,7 +88,7 @@ h.fig.scatter = figure(2);
 clf
 h.ax.scatter = axes;
 hold on
-firingRateJittered = firingRate + randn(size(firingRate)) * 0.05;
+firingRateJittered = firingRate + randn(size(firingRate)) * 0.0;
 plot(forwardVelocity, firingRateJittered, '.', 'markersize', 1, ...
     'displayname', 'Data')
 plot(forwardVelocity, firingRatePredictedReg, ...
